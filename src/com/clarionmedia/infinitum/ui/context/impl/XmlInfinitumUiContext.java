@@ -112,7 +112,7 @@ public class XmlInfinitumUiContext implements InfinitumUiContext {
 
 	@Override
 	public List<AbstractBeanDefinition> getBeans(BeanDefinitionBuilder beanDefinitionBuilder) {
-		return new ArrayList<AbstractBeanDefinition>();
+		return new ArrayList<AbstractBeanDefinition>(0);
 	}
 
 	@Override
@@ -124,7 +124,7 @@ public class XmlInfinitumUiContext implements InfinitumUiContext {
 	public void onEventPublished(LifecycleEvent event) {
 		Log.e(getClass().getSimpleName(), "Event: " + event.getEventPublisher() + " - " + event.getEventType());
 	}
-	
+
 	@Override
 	public void subscribeForEvents(EventSubscriber subscriber) {
 		mParentContext.subscribeForEvents(subscriber);
@@ -132,7 +132,7 @@ public class XmlInfinitumUiContext implements InfinitumUiContext {
 
 	@Override
 	public Session getProxiedSession(Session session) {
-		return (Session) new SessionProxy(session).getProxy();
+		return (Session) new SessionProxy(getAndroidContext(), session).getProxy();
 	}
 
 }
