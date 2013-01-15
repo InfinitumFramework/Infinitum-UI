@@ -48,6 +48,8 @@ public class SessionProxy extends DexMakerProxy {
 			if (event != null)
 				mContext.putDataEvent(event);
 		}
+		if (Session.class.isAssignableFrom(result.getClass()))
+			return this.getProxy();
 		return result;
 	}
 
