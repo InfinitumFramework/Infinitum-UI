@@ -18,12 +18,12 @@ package com.clarionmedia.infinitum.ui.context.impl;
 
 import java.lang.reflect.Method;
 
-import android.content.Context;
-import android.util.Log;
-
 import com.clarionmedia.infinitum.di.AbstractProxy;
 import com.clarionmedia.infinitum.di.DexMakerProxy;
+import com.clarionmedia.infinitum.event.InfinitumEvent;
 import com.clarionmedia.infinitum.orm.Session;
+import com.clarionmedia.infinitum.ui.context.InfinitumUiContext;
+import com.clarionmedia.infinitum.ui.context.impl.DataEvent.EventType;
 
 /**
  * 
@@ -32,22 +32,48 @@ import com.clarionmedia.infinitum.orm.Session;
  * @since 1.0
  */
 public class SessionProxy extends DexMakerProxy {
-	
-	public SessionProxy(Context context, Session session) {
-		super(context, session);
+
+	private InfinitumUiContext mContext;
+
+	public SessionProxy(InfinitumUiContext context, Session session) {
+		super(context.getAndroidContext(), session);
+		mContext = context;
 	}
 
 	@Override
 	public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-		Log.e(getClass().getSimpleName(), "Session method intercepted");
-		// TODO Intercept data-modifying operations and notify subscribers on success
-		// Maybe create an annotation to mark data-modifying methods in Session implementations?
-		return method.invoke(mTarget, args);
+		Object result = method.invoke(mTarget, args);
+		if (method.isAnnotationPresent(InfinitumEvent.class)) {
+			DataEvent event = getDataEvent(method, args, result);
+			if (event != null)
+				mContext.putDataEvent(event);
+		}
+		return result;
 	}
 
 	@Override
 	public AbstractProxy clone() {
 		throw new UnsupportedOperationException();
+	}
+
+	private DataEvent getDataEvent(Method method, Object[] args, Object result) {
+		DataEvent event = null;
+		String eventName = method.getAnnotation(InfinitumEvent.class).value();
+		if (eventName.equals("entitySaved") && (Long) result != -1)
+			event = new DataEvent(EventType.CREATED, args);
+		if (eventName.equals("entityUpdated") && (Boolean) result)
+			event = new DataEvent(EventType.UPDATED, args);
+		if (eventName.equals("entityDeleted") && (Boolean) result)
+			event = new DataEvent(EventType.DELETED, args);
+		if (eventName.equals("entitySavedOrUpdated") && (Long) result != -1)
+			event = new DataEvent(EventType.UPDATED, args);
+		if (eventName.equals("entitiesSavedOrUpdated") && (Long) result > 0)
+			event = new DataEvent(EventType.UPDATED, args);
+		if (eventName.equals("entitiesSaved") && (Long) result > 0)
+			event = new DataEvent(EventType.CREATED, args);
+		if (eventName.equals("entitiesDeleted") && (Long) result > 0)
+			event = new DataEvent(EventType.DELETED, args);
+		return event;
 	}
 
 }

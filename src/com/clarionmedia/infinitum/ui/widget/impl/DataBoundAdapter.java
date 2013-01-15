@@ -20,9 +20,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 
-import com.clarionmedia.infinitum.activity.EventPublisher;
-import com.clarionmedia.infinitum.orm.context.InfinitumOrmContext;
+import com.clarionmedia.infinitum.context.InfinitumContext;
+import com.clarionmedia.infinitum.event.EventPublisher;
 import com.clarionmedia.infinitum.orm.criteria.Criteria;
+import com.clarionmedia.infinitum.ui.context.InfinitumUiContext;
 import com.clarionmedia.infinitum.ui.widget.DataBound;
 
 /**
@@ -40,11 +41,12 @@ public abstract class DataBoundAdapter<T> extends ArrayAdapter<T> implements Dat
 	private Criteria<T> mCriteria;
 	private EventPublisher mEventPublisher;
 
-	public DataBoundAdapter(InfinitumOrmContext ormContext, EventPublisher eventPublisher, int resource, int textViewResourceId,
+	public DataBoundAdapter(InfinitumContext context, EventPublisher eventPublisher, int resource, int textViewResourceId,
 			Criteria<T> criteria) {
-		super(ormContext.getAndroidContext(), resource, textViewResourceId);
+		super(context.getAndroidContext(), resource, textViewResourceId);
 		mCriteria = criteria;
 		mEventPublisher = eventPublisher;
+		context.getChildContext(InfinitumUiContext.class).registerDataBound(this);
 	}
 
 	public abstract View getView(int position, View convertView, ViewGroup parent);
@@ -64,6 +66,7 @@ public abstract class DataBoundAdapter<T> extends ArrayAdapter<T> implements Dat
 		notifyDataSetChanged();
 	}
 
+	@Override
 	public EventPublisher getEventPublisher() {
 		return mEventPublisher;
 	}

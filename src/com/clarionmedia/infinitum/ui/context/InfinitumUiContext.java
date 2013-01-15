@@ -16,12 +16,12 @@
 
 package com.clarionmedia.infinitum.ui.context;
 
-import com.clarionmedia.infinitum.activity.EventPublisher;
-import com.clarionmedia.infinitum.activity.EventSubscriber;
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.di.BeanProvider;
+import com.clarionmedia.infinitum.event.EventSubscriber;
 import com.clarionmedia.infinitum.orm.Session;
 import com.clarionmedia.infinitum.ui.context.impl.DataEvent;
+import com.clarionmedia.infinitum.ui.widget.DataBound;
 
 /**
  * 
@@ -33,6 +33,8 @@ public interface InfinitumUiContext extends InfinitumContext, BeanProvider, Even
 	
 	Session getProxiedSession(Session session);
 	
-	void putDataEvent(EventPublisher eventPublisher, DataEvent eventData);
+	void putDataEvent(DataEvent dataEvent);
+	
+	void registerDataBound(DataBound dataBound);
 
 }

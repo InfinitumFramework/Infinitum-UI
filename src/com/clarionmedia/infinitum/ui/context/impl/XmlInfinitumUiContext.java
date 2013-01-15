@@ -18,16 +18,15 @@ package com.clarionmedia.infinitum.ui.context.impl;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Set;
 
 import android.content.Context;
-import android.util.Log;
 
-import com.clarionmedia.infinitum.activity.EventPublisher;
-import com.clarionmedia.infinitum.activity.EventSubscriber;
 import com.clarionmedia.infinitum.activity.LifecycleEvent;
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.context.RestfulContext;
@@ -35,8 +34,12 @@ import com.clarionmedia.infinitum.context.impl.XmlApplicationContext;
 import com.clarionmedia.infinitum.di.AbstractBeanDefinition;
 import com.clarionmedia.infinitum.di.BeanDefinitionBuilder;
 import com.clarionmedia.infinitum.di.BeanFactory;
+import com.clarionmedia.infinitum.event.EventPublisher;
+import com.clarionmedia.infinitum.event.EventSubscriber;
+import com.clarionmedia.infinitum.internal.Pair;
 import com.clarionmedia.infinitum.orm.Session;
 import com.clarionmedia.infinitum.ui.context.InfinitumUiContext;
+import com.clarionmedia.infinitum.ui.widget.DataBound;
 
 /**
  * 
@@ -48,7 +51,7 @@ public class XmlInfinitumUiContext implements InfinitumUiContext {
 
 	private XmlApplicationContext mParentContext;
 	private List<InfinitumContext> mChildContexts;
-	private Map<EventPublisher, Queue<DataEvent>> mDataEvents;
+	private Map<EventPublisher, Pair<Set<DataBound>, Queue<DataEvent>>> mDataEvents;
 
 	/**
 	 * Creates a new {@code XmlInfinitumUiContext} instance as a child of the
@@ -61,7 +64,7 @@ public class XmlInfinitumUiContext implements InfinitumUiContext {
 		mParentContext = parentContext;
 		mChildContexts = new ArrayList<InfinitumContext>();
 		parentContext.subscribeForEvents(this);
-		mDataEvents = new HashMap<EventPublisher, Queue<DataEvent>>();
+		mDataEvents = new HashMap<EventPublisher, Pair<Set<DataBound>, Queue<DataEvent>>>();
 	}
 
 	@Override
@@ -135,7 +138,27 @@ public class XmlInfinitumUiContext implements InfinitumUiContext {
 
 	@Override
 	public void onEventPublished(LifecycleEvent event) {
-		Log.e(getClass().getSimpleName(), "Event: " + event.getEventPublisher() + " - " + event.getEventType());
+		EventPublisher eventPublisher = event.getEventPublisher();
+		switch (event.getEventType()) {
+		case ON_DESTROY:
+			mDataEvents.remove(eventPublisher);
+			break;
+		case ON_CREATE:
+		case ON_START:
+		case ON_RESUME:
+		case ON_CREATE_VIEW:
+			for (Pair<Set<DataBound>, Queue<DataEvent>> p : mDataEvents.values()) {
+				Queue<DataEvent> eventQueue = p.getSecond();
+				while (!eventQueue.isEmpty()) {
+					DataEvent dataEvent = eventQueue.remove();
+					for (DataBound dataBound : p.getFirst())
+						dataBound.bind();
+				}
+			}
+			break;
+		default:
+			break;
+		}
 	}
 
 	@Override
@@ -145,17 +168,32 @@ public class XmlInfinitumUiContext implements InfinitumUiContext {
 
 	@Override
 	public Session getProxiedSession(Session session) {
-		return (Session) new SessionProxy(getAndroidContext(), session).getProxy();
+		return (Session) new SessionProxy(this, session).getProxy();
 	}
 
 	@Override
-	public void putDataEvent(EventPublisher eventPublisher, DataEvent eventData) {
-		if (mDataEvents.containsKey(eventPublisher)) {
-			mDataEvents.get(eventPublisher).add(eventData);
+	public void putDataEvent(DataEvent dataEvent) {
+		for (EventPublisher eventPublisher : mDataEvents.keySet()) {
+			if (!mDataEvents.containsKey(eventPublisher)) {
+				Queue<DataEvent> queue = new LinkedList<DataEvent>();
+				queue.add(dataEvent);
+				Pair<Set<DataBound>, Queue<DataEvent>> p = new Pair<Set<DataBound>, Queue<DataEvent>>(new HashSet<DataBound>(), queue);
+				mDataEvents.put(eventPublisher, p);
+			}
+			mDataEvents.get(eventPublisher).getSecond().add(dataEvent);
+		}
+	}
+
+	@Override
+	public void registerDataBound(DataBound dataBound) {
+		EventPublisher eventPublisher = dataBound.getEventPublisher();
+		if (!mDataEvents.containsKey(eventPublisher)) {
+			Set<DataBound> dataBounds = new HashSet<DataBound>();
+			dataBounds.add(dataBound);
+			Pair<Set<DataBound>, Queue<DataEvent>> p = new Pair<Set<DataBound>, Queue<DataEvent>>(dataBounds, new LinkedList<DataEvent>());
+			mDataEvents.put(eventPublisher, p);
 		} else {
-			Queue<DataEvent> eventQueue = new LinkedList<DataEvent>();
-			eventQueue.add(eventData);
-			mDataEvents.put(eventPublisher, eventQueue);
+			mDataEvents.get(eventPublisher).getFirst().add(dataBound);
 		}
 	}
 

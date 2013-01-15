@@ -16,6 +16,8 @@
 
 package com.clarionmedia.infinitum.ui.widget;
 
+import com.clarionmedia.infinitum.event.EventPublisher;
+
 /**
  * <p>
  * Exposes methods for binding data.
@@ -31,5 +33,7 @@ public interface DataBound {
 	 * Binds the data source data to the widget.
 	 */
 	void bind();
+	
+	EventPublisher getEventPublisher();
 
 }

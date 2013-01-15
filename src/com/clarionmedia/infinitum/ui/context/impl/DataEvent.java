@@ -16,7 +16,6 @@
 
 package com.clarionmedia.infinitum.ui.context.impl;
 
-import java.util.List;
 
 /**
  * 
@@ -31,9 +30,9 @@ public class DataEvent {
 	};
 
 	private EventType mType;
-	private List<?> mEntities;
+	private Object[] mEntities;
 
-	public DataEvent(EventType type, List<?> entities) {
+	public DataEvent(EventType type, Object[] entities) {
 		mType = type;
 		mEntities = entities;
 	}
@@ -42,7 +41,7 @@ public class DataEvent {
 		return mType;
 	}
 
-	public List<?> getEntities() {
+	public Object[] getEntities() {
 		return mEntities;
 	}
 
