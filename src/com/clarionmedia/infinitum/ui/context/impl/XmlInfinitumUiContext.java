@@ -17,11 +17,16 @@
 package com.clarionmedia.infinitum.ui.context.impl;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Queue;
 
 import android.content.Context;
 import android.util.Log;
 
+import com.clarionmedia.infinitum.activity.EventPublisher;
 import com.clarionmedia.infinitum.activity.EventSubscriber;
 import com.clarionmedia.infinitum.activity.LifecycleEvent;
 import com.clarionmedia.infinitum.context.InfinitumContext;
@@ -33,10 +38,17 @@ import com.clarionmedia.infinitum.di.BeanFactory;
 import com.clarionmedia.infinitum.orm.Session;
 import com.clarionmedia.infinitum.ui.context.InfinitumUiContext;
 
+/**
+ * 
+ * @author Tyler Treat
+ * @version 1.0 01/13/13
+ * @since 1.0
+ */
 public class XmlInfinitumUiContext implements InfinitumUiContext {
 
 	private XmlApplicationContext mParentContext;
 	private List<InfinitumContext> mChildContexts;
+	private Map<EventPublisher, Queue<DataEvent>> mDataEvents;
 
 	/**
 	 * Creates a new {@code XmlInfinitumUiContext} instance as a child of the
@@ -49,6 +61,7 @@ public class XmlInfinitumUiContext implements InfinitumUiContext {
 		mParentContext = parentContext;
 		mChildContexts = new ArrayList<InfinitumContext>();
 		parentContext.subscribeForEvents(this);
+		mDataEvents = new HashMap<EventPublisher, Queue<DataEvent>>();
 	}
 
 	@Override
@@ -133,6 +146,17 @@ public class XmlInfinitumUiContext implements InfinitumUiContext {
 	@Override
 	public Session getProxiedSession(Session session) {
 		return (Session) new SessionProxy(getAndroidContext(), session).getProxy();
+	}
+
+	@Override
+	public void putDataEvent(EventPublisher eventPublisher, DataEvent eventData) {
+		if (mDataEvents.containsKey(eventPublisher)) {
+			mDataEvents.get(eventPublisher).add(eventData);
+		} else {
+			Queue<DataEvent> eventQueue = new LinkedList<DataEvent>();
+			eventQueue.add(eventData);
+			mDataEvents.put(eventPublisher, eventQueue);
+		}
 	}
 
 }

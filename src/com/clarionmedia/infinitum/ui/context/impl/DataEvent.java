@@ -14,25 +14,36 @@
  * limitations under the License.
  */
 
-package com.clarionmedia.infinitum.ui.context;
+package com.clarionmedia.infinitum.ui.context.impl;
 
-import com.clarionmedia.infinitum.activity.EventPublisher;
-import com.clarionmedia.infinitum.activity.EventSubscriber;
-import com.clarionmedia.infinitum.context.InfinitumContext;
-import com.clarionmedia.infinitum.di.BeanProvider;
-import com.clarionmedia.infinitum.orm.Session;
-import com.clarionmedia.infinitum.ui.context.impl.DataEvent;
+import java.util.List;
 
 /**
  * 
  * @author Tyler Treat
- * @version 1.0 01/13/13
+ * @version 1.0 01/14/13
  * @since 1.0
  */
-public interface InfinitumUiContext extends InfinitumContext, BeanProvider, EventSubscriber {
-	
-	Session getProxiedSession(Session session);
-	
-	void putDataEvent(EventPublisher eventPublisher, DataEvent eventData);
+public class DataEvent {
+
+	public static enum EventType {
+		CREATED, DELETED, UPDATED
+	};
+
+	private EventType mType;
+	private List<?> mEntities;
+
+	public DataEvent(EventType type, List<?> entities) {
+		mType = type;
+		mEntities = entities;
+	}
+
+	public EventType getType() {
+		return mType;
+	}
+
+	public List<?> getEntities() {
+		return mEntities;
+	}
 
 }

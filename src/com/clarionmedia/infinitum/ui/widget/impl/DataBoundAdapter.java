@@ -20,24 +20,40 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 
+import com.clarionmedia.infinitum.activity.EventPublisher;
 import com.clarionmedia.infinitum.orm.context.InfinitumOrmContext;
 import com.clarionmedia.infinitum.orm.criteria.Criteria;
+import com.clarionmedia.infinitum.ui.widget.DataBound;
 
-public abstract class DataBoundAdapter<T> extends ArrayAdapter<T> {
-	
+/**
+ * <p>
+ * Implementation of {@link ArrayAdapter} where the data is loaded using the
+ * provided {@link Criteria} query.
+ * </p>
+ * 
+ * @author Tyler Treat
+ * @version 1.0 01/13/13
+ * @since 1.0
+ */
+public abstract class DataBoundAdapter<T> extends ArrayAdapter<T> implements DataBound {
+
 	private Criteria<T> mCriteria;
-	
-	public DataBoundAdapter(InfinitumOrmContext ormContext, int resource, int textViewResourceId, Criteria<T> criteria) {
+	private EventPublisher mEventPublisher;
+
+	public DataBoundAdapter(InfinitumOrmContext ormContext, EventPublisher eventPublisher, int resource, int textViewResourceId,
+			Criteria<T> criteria) {
 		super(ormContext.getAndroidContext(), resource, textViewResourceId);
 		mCriteria = criteria;
+		mEventPublisher = eventPublisher;
 	}
-	
+
 	public abstract View getView(int position, View convertView, ViewGroup parent);
-	
+
 	public void setCriteria(Criteria<T> criteria) {
 		mCriteria = criteria;
 	}
-	
+
+	@Override
 	public void bind() {
 		if (!mCriteria.getSession().isOpen())
 			mCriteria.getSession().open();
@@ -46,6 +62,10 @@ public abstract class DataBoundAdapter<T> extends ArrayAdapter<T> {
 			add(item);
 		mCriteria.getSession().close();
 		notifyDataSetChanged();
+	}
+
+	public EventPublisher getEventPublisher() {
+		return mEventPublisher;
 	}
 
 }

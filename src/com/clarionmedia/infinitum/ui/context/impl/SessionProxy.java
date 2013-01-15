@@ -25,6 +25,12 @@ import com.clarionmedia.infinitum.di.AbstractProxy;
 import com.clarionmedia.infinitum.di.DexMakerProxy;
 import com.clarionmedia.infinitum.orm.Session;
 
+/**
+ * 
+ * @author Tyler Treat
+ * @version 1.0 01/13/13
+ * @since 1.0
+ */
 public class SessionProxy extends DexMakerProxy {
 	
 	public SessionProxy(Context context, Session session) {
@@ -34,6 +40,8 @@ public class SessionProxy extends DexMakerProxy {
 	@Override
 	public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 		Log.e(getClass().getSimpleName(), "Session method intercepted");
+		// TODO Intercept data-modifying operations and notify subscribers on success
+		// Maybe create an annotation to mark data-modifying methods in Session implementations?
 		return method.invoke(mTarget, args);
 	}
 

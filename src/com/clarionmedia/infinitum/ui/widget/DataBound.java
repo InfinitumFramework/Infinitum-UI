@@ -14,25 +14,22 @@
  * limitations under the License.
  */
 
-package com.clarionmedia.infinitum.ui.context;
-
-import com.clarionmedia.infinitum.activity.EventPublisher;
-import com.clarionmedia.infinitum.activity.EventSubscriber;
-import com.clarionmedia.infinitum.context.InfinitumContext;
-import com.clarionmedia.infinitum.di.BeanProvider;
-import com.clarionmedia.infinitum.orm.Session;
-import com.clarionmedia.infinitum.ui.context.impl.DataEvent;
+package com.clarionmedia.infinitum.ui.widget;
 
 /**
+ * <p>
+ * Exposes methods for binding data.
+ * </p>
  * 
  * @author Tyler Treat
- * @version 1.0 01/13/13
+ * @version 1.0 01/14/13
  * @since 1.0
  */
-public interface InfinitumUiContext extends InfinitumContext, BeanProvider, EventSubscriber {
-	
-	Session getProxiedSession(Session session);
-	
-	void putDataEvent(EventPublisher eventPublisher, DataEvent eventData);
+public interface DataBound {
+
+	/**
+	 * Binds the data source data to the widget.
+	 */
+	void bind();
 
 }
