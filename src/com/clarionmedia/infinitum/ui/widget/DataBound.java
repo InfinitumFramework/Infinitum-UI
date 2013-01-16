@@ -17,6 +17,7 @@
 package com.clarionmedia.infinitum.ui.widget;
 
 import com.clarionmedia.infinitum.event.EventPublisher;
+import com.clarionmedia.infinitum.ui.context.impl.DataEvent;
 
 /**
  * <p>
@@ -30,10 +31,20 @@ import com.clarionmedia.infinitum.event.EventPublisher;
 public interface DataBound {
 
 	/**
-	 * Binds the data source data to the widget.
+	 * Binds the data source data to the widget. This will result in some sort
+	 * of datastore query.
 	 */
 	void bind();
-	
+
+	/**
+	 * Updates the {@code DataBound} structure according to the given
+	 * {@link DataEvent}, which could be the creation, modification, or deletion
+	 * of an entity.
+	 * 
+	 * @param dataEvent
+	 */
+	void updateForEvent(DataEvent dataEvent);
+
 	EventPublisher getEventPublisher();
 
 }

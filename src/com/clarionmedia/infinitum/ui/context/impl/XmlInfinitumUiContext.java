@@ -152,7 +152,7 @@ public class XmlInfinitumUiContext implements InfinitumUiContext {
 				while (!eventQueue.isEmpty()) {
 					DataEvent dataEvent = eventQueue.remove();
 					for (DataBound dataBound : p.getFirst())
-						dataBound.bind();
+						dataBound.updateForEvent(dataEvent);
 				}
 			}
 			break;

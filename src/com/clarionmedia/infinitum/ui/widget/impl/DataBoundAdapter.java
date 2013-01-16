@@ -16,6 +16,9 @@
 
 package com.clarionmedia.infinitum.ui.widget.impl;
 
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -24,6 +27,7 @@ import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.event.EventPublisher;
 import com.clarionmedia.infinitum.orm.criteria.Criteria;
 import com.clarionmedia.infinitum.ui.context.InfinitumUiContext;
+import com.clarionmedia.infinitum.ui.context.impl.DataEvent;
 import com.clarionmedia.infinitum.ui.widget.DataBound;
 
 /**
@@ -40,13 +44,17 @@ public abstract class DataBoundAdapter<T> extends ArrayAdapter<T> implements Dat
 
 	private Criteria<T> mCriteria;
 	private EventPublisher mEventPublisher;
+	private Class<T> mGenericType;
 
+	@SuppressWarnings("unchecked")
 	public DataBoundAdapter(InfinitumContext context, EventPublisher eventPublisher, int resource, int textViewResourceId,
 			Criteria<T> criteria) {
 		super(context.getAndroidContext(), resource, textViewResourceId);
 		mCriteria = criteria;
 		mEventPublisher = eventPublisher;
 		context.getChildContext(InfinitumUiContext.class).registerDataBound(this);
+		ParameterizedType type = (ParameterizedType) getClass().getGenericSuperclass();
+		mGenericType = (Class<T>) type.getActualTypeArguments()[0];
 	}
 
 	public abstract View getView(int position, View convertView, ViewGroup parent);
@@ -69,6 +77,25 @@ public abstract class DataBoundAdapter<T> extends ArrayAdapter<T> implements Dat
 	@Override
 	public EventPublisher getEventPublisher() {
 		return mEventPublisher;
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public void updateForEvent(DataEvent dataEvent) {
+		if (dataEvent.getEntity().getClass() != mGenericType)
+			return;
+		switch (dataEvent.getType()) {
+		case CREATED:
+			add((T) dataEvent.getEntity());
+			break;
+		case DELETED:
+			remove((T) dataEvent.getEntity());
+			break;
+		case UPDATED:
+			// TODO
+			break;
+		}
+		notifyDataSetChanged();
 	}
 
 }

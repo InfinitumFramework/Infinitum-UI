@@ -30,19 +30,19 @@ public class DataEvent {
 	};
 
 	private EventType mType;
-	private Object[] mEntities;
+	private Object mEntity;
 
-	public DataEvent(EventType type, Object[] entities) {
+	public DataEvent(EventType type, Object entity) {
 		mType = type;
-		mEntities = entities;
+		mEntity = entity;
 	}
 
 	public EventType getType() {
 		return mType;
 	}
 
-	public Object[] getEntities() {
-		return mEntities;
+	public Object getEntity() {
+		return mEntity;
 	}
 
 }

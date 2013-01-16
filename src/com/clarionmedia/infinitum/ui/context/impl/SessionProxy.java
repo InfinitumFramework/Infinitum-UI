@@ -60,21 +60,18 @@ public class SessionProxy extends DexMakerProxy {
 
 	private DataEvent getDataEvent(Method method, Object[] args, Object result) {
 		DataEvent event = null;
+		Object entity = args.length > 0 ? args[0] : null;
 		String eventName = method.getAnnotation(InfinitumEvent.class).value();
 		if (eventName.equals("entitySaved") && (Long) result != -1)
-			event = new DataEvent(EventType.CREATED, args);
+			event = new DataEvent(EventType.CREATED, entity);
 		if (eventName.equals("entityUpdated") && (Boolean) result)
-			event = new DataEvent(EventType.UPDATED, args);
+			event = new DataEvent(EventType.UPDATED, entity);
 		if (eventName.equals("entityDeleted") && (Boolean) result)
-			event = new DataEvent(EventType.DELETED, args);
-		if (eventName.equals("entitySavedOrUpdated") && (Long) result != -1)
-			event = new DataEvent(EventType.UPDATED, args);
-		if (eventName.equals("entitiesSavedOrUpdated") && (Long) result > 0)
-			event = new DataEvent(EventType.UPDATED, args);
-		if (eventName.equals("entitiesSaved") && (Long) result > 0)
-			event = new DataEvent(EventType.CREATED, args);
-		if (eventName.equals("entitiesDeleted") && (Long) result > 0)
-			event = new DataEvent(EventType.DELETED, args);
+			event = new DataEvent(EventType.DELETED, entity);
+		if (eventName.equals("entitySavedOrUpdated") && (Long) result != -1) {
+			EventType type = (Long) result == 0 ? EventType.UPDATED : EventType.CREATED;
+			event = new DataEvent(type, entity);
+		}
 		return event;
 	}
 
