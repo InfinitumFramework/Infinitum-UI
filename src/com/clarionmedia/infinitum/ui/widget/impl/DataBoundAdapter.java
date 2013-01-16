@@ -17,7 +17,6 @@
 package com.clarionmedia.infinitum.ui.widget.impl;
 
 import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 
 import android.view.View;
 import android.view.ViewGroup;
