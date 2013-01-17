@@ -24,17 +24,42 @@ import com.clarionmedia.infinitum.ui.context.impl.DataEvent;
 import com.clarionmedia.infinitum.ui.widget.DataBound;
 
 /**
+ * <p>
+ * {@code InfinitumUiContext} is an extension of {@link InfinitumContext} that
+ * contains configuration information for the framework UI module.
+ * </p>
  * 
  * @author Tyler Treat
  * @version 1.0 01/13/13
  * @since 1.0
  */
 public interface InfinitumUiContext extends InfinitumContext, BeanProvider, EventSubscriber {
-	
+
+	/**
+	 * Retrieves a proxy for the given {@link Session}.
+	 * 
+	 * @param session
+	 *            the {@code Session} to proxy
+	 * @return proxied {@code Session}
+	 */
 	Session getProxiedSession(Session session);
-	
-	void putDataEvent(DataEvent dataEvent);
-	
+
+	/**
+	 * Adds the given {@link DataEvent} to the {@link EventPublisher} event
+	 * queues.
+	 * 
+	 * @param dataEvent
+	 *            the {@code DataEvent} to add to the queues
+	 */
+	void enqueueDataEvent(DataEvent dataEvent);
+
+	/**
+	 * Registers the given {@link DataBound} with the UI context for receiving
+	 * {@code DataEvent}s
+	 * 
+	 * @param dataBound
+	 *            the {@code DataBound} to register
+	 */
 	void registerDataBound(DataBound dataBound);
 
 }

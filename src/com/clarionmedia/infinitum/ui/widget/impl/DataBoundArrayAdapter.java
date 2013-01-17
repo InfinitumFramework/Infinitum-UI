@@ -39,14 +39,28 @@ import com.clarionmedia.infinitum.ui.widget.DataBound;
  * @version 1.0 01/13/13
  * @since 1.0
  */
-public abstract class DataBoundAdapter<T> extends ArrayAdapter<T> implements DataBound {
+public abstract class DataBoundArrayAdapter<T> extends ArrayAdapter<T> implements DataBound {
 
 	private Criteria<T> mCriteria;
 	private EventPublisher mEventPublisher;
 	private Class<T> mGenericType;
 
+	/**
+	 * Creates a new {@code DataBoundArrayAdapter} instance.
+	 * 
+	 * @param context
+	 *            the {@link InfinitumContext}
+	 * @param eventPublisher
+	 *            the {@link EventPublisher} this adapter belongs to
+	 * @param resource
+	 *            the {@link View} layout ID
+	 * @param textViewResourceId
+	 *            the {@link TextView} ID
+	 * @param criteria
+	 *            the {@link Criteria} query to use for retrieving data
+	 */
 	@SuppressWarnings("unchecked")
-	public DataBoundAdapter(InfinitumContext context, EventPublisher eventPublisher, int resource, int textViewResourceId,
+	public DataBoundArrayAdapter(InfinitumContext context, EventPublisher eventPublisher, int resource, int textViewResourceId,
 			Criteria<T> criteria) {
 		super(context.getAndroidContext(), resource, textViewResourceId);
 		mCriteria = criteria;
@@ -56,8 +70,15 @@ public abstract class DataBoundAdapter<T> extends ArrayAdapter<T> implements Dat
 		mGenericType = (Class<T>) type.getActualTypeArguments()[0];
 	}
 
+	@Override
 	public abstract View getView(int position, View convertView, ViewGroup parent);
 
+	/**
+	 * Sets the {@link Criteria} query to use for binding data.
+	 * 
+	 * @param criteria
+	 *            the {@code Criteria} query
+	 */
 	public void setCriteria(Criteria<T> criteria) {
 		mCriteria = criteria;
 	}
@@ -77,7 +98,7 @@ public abstract class DataBoundAdapter<T> extends ArrayAdapter<T> implements Dat
 	public EventPublisher getEventPublisher() {
 		return mEventPublisher;
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	@Override
 	public void updateForEvent(DataEvent dataEvent) {

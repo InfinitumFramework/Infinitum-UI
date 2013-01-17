@@ -21,7 +21,7 @@ import com.clarionmedia.infinitum.ui.context.impl.DataEvent;
 
 /**
  * <p>
- * Exposes methods for binding data.
+ * Exposes methods for binding data from a datastore.
  * </p>
  * 
  * @author Tyler Treat
@@ -42,9 +42,16 @@ public interface DataBound {
 	 * of an entity.
 	 * 
 	 * @param dataEvent
+	 *            the {@code DataEvent} to respond to
 	 */
 	void updateForEvent(DataEvent dataEvent);
 
+	/**
+	 * Returns the {@link EventPublisher} associated with this {@code DataBound}
+	 * .
+	 * 
+	 * @return {@code EventPublisher}
+	 */
 	EventPublisher getEventPublisher();
 
 }

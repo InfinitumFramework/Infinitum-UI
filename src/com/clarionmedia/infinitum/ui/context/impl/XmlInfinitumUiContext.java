@@ -42,6 +42,10 @@ import com.clarionmedia.infinitum.ui.context.InfinitumUiContext;
 import com.clarionmedia.infinitum.ui.widget.DataBound;
 
 /**
+ * <p>
+ * Implementation of {@link InfinitumUiContext} which is initialized through XML
+ * as a child of an {@link XmlApplicationContext} instance.
+ * </p>
  * 
  * @author Tyler Treat
  * @version 1.0 01/13/13
@@ -172,7 +176,7 @@ public class XmlInfinitumUiContext implements InfinitumUiContext {
 	}
 
 	@Override
-	public void putDataEvent(DataEvent dataEvent) {
+	public void enqueueDataEvent(DataEvent dataEvent) {
 		for (EventPublisher eventPublisher : mDataEvents.keySet()) {
 			if (!mDataEvents.containsKey(eventPublisher)) {
 				Queue<DataEvent> queue = new LinkedList<DataEvent>();

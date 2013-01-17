@@ -16,8 +16,22 @@
 
 package com.clarionmedia.infinitum.ui.context.impl;
 
-
 /**
+ * <p>
+ * Represents the notion of a "data event", which is the creation, modification,
+ * or deletion of an entity. A {@code DataEvent} signals to the UI that it
+ * potentially needs to be updated. For example, if an entity is deleted in
+ * {@code Activity A} and then {@code Activity B}, which contains a list of
+ * entities, is resumed, the deleted entity should be removed from the list in
+ * {@code Activity B}.
+ * </p>
+ * <p>
+ * {@code DataEvent}s are added to event queues that belong to each registered
+ * {@link EventPublisher}. When an {@code Activity} or {@code Fragment}
+ * lifecycle event is published, such as {@code onCreate}, {@code onStart}, or
+ * {@code onResume}, the {@code DataEvent}s in the queue will be consumed,
+ * possibly resulting in a UI update.
+ * </p>
  * 
  * @author Tyler Treat
  * @version 1.0 01/14/13
@@ -25,6 +39,9 @@ package com.clarionmedia.infinitum.ui.context.impl;
  */
 public class DataEvent {
 
+	/**
+	 * Indicates what kind of {@code DataEvent} occurred.
+	 */
 	public static enum EventType {
 		CREATED, DELETED, UPDATED
 	};
@@ -32,15 +49,33 @@ public class DataEvent {
 	private EventType mType;
 	private Object mEntity;
 
+	/**
+	 * Creates a new {@code DataEvent} instance.
+	 * 
+	 * @param type
+	 *            the {@code EventType} of the {@code DataEvent}
+	 * @param entity
+	 *            the entity the {@code DataEvent} corresponds to
+	 */
 	public DataEvent(EventType type, Object entity) {
 		mType = type;
 		mEntity = entity;
 	}
 
+	/**
+	 * Returns the {@code EventType} for this {@code DataEvent}.
+	 * 
+	 * @return {@code DataEvent}
+	 */
 	public EventType getType() {
 		return mType;
 	}
 
+	/**
+	 * Returns the entity for this {@code DataEvent}.
+	 * 
+	 * @return entity
+	 */
 	public Object getEntity() {
 		return mEntity;
 	}

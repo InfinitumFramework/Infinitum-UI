@@ -26,6 +26,14 @@ import com.clarionmedia.infinitum.ui.context.InfinitumUiContext;
 import com.clarionmedia.infinitum.ui.context.impl.DataEvent.EventType;
 
 /**
+ * <p>
+ * Proxy for a {@link Session} which intercepts {@code Session} method
+ * invocations. Successful "data-modifying" method invocations, such as
+ * {@link Session#save(Object)}, {@link Session#update(Object)}, and
+ * {@link Session#delete(Object)}, will add a {@link DataEvent} to the
+ * {@link EventPublisher} queues, allowing them to react accordingly on
+ * qualifying lifecycle events.
+ * </p>
  * 
  * @author Tyler Treat
  * @version 1.0 01/13/13
@@ -46,7 +54,7 @@ public class SessionProxy extends DexMakerProxy {
 		if (method.isAnnotationPresent(InfinitumEvent.class)) {
 			DataEvent event = getDataEvent(method, args, result);
 			if (event != null)
-				mContext.putDataEvent(event);
+				mContext.enqueueDataEvent(event);
 		}
 		if (Session.class.isAssignableFrom(result.getClass()))
 			return this.getProxy();
