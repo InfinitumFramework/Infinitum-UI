@@ -27,15 +27,16 @@ import java.util.Set;
 
 import android.content.Context;
 
-import com.clarionmedia.infinitum.activity.LifecycleEvent;
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.context.RestfulContext;
 import com.clarionmedia.infinitum.context.impl.XmlApplicationContext;
 import com.clarionmedia.infinitum.di.AbstractBeanDefinition;
 import com.clarionmedia.infinitum.di.BeanDefinitionBuilder;
 import com.clarionmedia.infinitum.di.BeanFactory;
+import com.clarionmedia.infinitum.event.AbstractEvent;
 import com.clarionmedia.infinitum.event.EventPublisher;
 import com.clarionmedia.infinitum.event.EventSubscriber;
+import com.clarionmedia.infinitum.event.impl.LifecycleEvent;
 import com.clarionmedia.infinitum.internal.Pair;
 import com.clarionmedia.infinitum.orm.Session;
 import com.clarionmedia.infinitum.ui.context.InfinitumUiContext;
@@ -136,14 +137,17 @@ public class XmlInfinitumUiContext implements InfinitumUiContext {
 	}
 
 	@Override
-	public void publishEvent(LifecycleEvent event) {
+	public void publishEvent(AbstractEvent event) {
 		mParentContext.publishEvent(event);
 	}
 
 	@Override
-	public void onEventPublished(LifecycleEvent event) {
-		EventPublisher eventPublisher = event.getEventPublisher();
-		switch (event.getEventType()) {
+	public void onEventPublished(AbstractEvent event) {
+		if (!(event instanceof LifecycleEvent))
+			return;
+		LifecycleEvent lifecycleEvent = (LifecycleEvent) event;
+		EventPublisher eventPublisher = lifecycleEvent.getPublisher();
+		switch (lifecycleEvent.getLifecycleHook()) {
 		case ON_DESTROY:
 			mDataEvents.remove(eventPublisher);
 			break;

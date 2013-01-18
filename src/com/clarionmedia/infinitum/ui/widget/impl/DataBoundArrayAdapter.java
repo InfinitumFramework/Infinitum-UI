@@ -17,14 +17,19 @@
 package com.clarionmedia.infinitum.ui.widget.impl;
 
 import java.lang.reflect.ParameterizedType;
+import java.util.List;
 
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.TextView;
 
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.event.EventPublisher;
+import com.clarionmedia.infinitum.orm.Session;
+import com.clarionmedia.infinitum.orm.context.InfinitumOrmContext;
 import com.clarionmedia.infinitum.orm.criteria.Criteria;
+import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
 import com.clarionmedia.infinitum.ui.context.InfinitumUiContext;
 import com.clarionmedia.infinitum.ui.context.impl.DataEvent;
 import com.clarionmedia.infinitum.ui.widget.DataBound;
@@ -44,6 +49,8 @@ public abstract class DataBoundArrayAdapter<T> extends ArrayAdapter<T> implement
 	private Criteria<T> mCriteria;
 	private EventPublisher mEventPublisher;
 	private Class<T> mGenericType;
+	private List<T> mData;
+	private PersistencePolicy mPersistencePolicy;
 
 	/**
 	 * Creates a new {@code DataBoundArrayAdapter} instance.
@@ -65,6 +72,7 @@ public abstract class DataBoundArrayAdapter<T> extends ArrayAdapter<T> implement
 		super(context.getAndroidContext(), resource, textViewResourceId);
 		mCriteria = criteria;
 		mEventPublisher = eventPublisher;
+		mPersistencePolicy = context.getChildContext(InfinitumOrmContext.class).getPersistencePolicy();
 		context.getChildContext(InfinitumUiContext.class).registerDataBound(this);
 		ParameterizedType type = (ParameterizedType) getClass().getGenericSuperclass();
 		mGenericType = (Class<T>) type.getActualTypeArguments()[0];
@@ -88,7 +96,8 @@ public abstract class DataBoundArrayAdapter<T> extends ArrayAdapter<T> implement
 		if (!mCriteria.getSession().isOpen())
 			mCriteria.getSession().open();
 		clear();
-		for (T item : mCriteria.list())
+		mData = mCriteria.list();
+		for (T item : mData)
 			add(item);
 		mCriteria.getSession().close();
 		notifyDataSetChanged();
@@ -102,17 +111,22 @@ public abstract class DataBoundArrayAdapter<T> extends ArrayAdapter<T> implement
 	@SuppressWarnings("unchecked")
 	@Override
 	public void updateForEvent(DataEvent dataEvent) {
-		if (dataEvent.getEntity().getClass() != mGenericType)
+		if (!mGenericType.isInstance(dataEvent.getPayload()))
 			return;
 		switch (dataEvent.getType()) {
 		case CREATED:
-			add((T) dataEvent.getEntity());
+			mData.add((T) dataEvent.getPayload());
 			break;
 		case DELETED:
-			remove((T) dataEvent.getEntity());
+			mData.remove((T) dataEvent.getPayload());
 			break;
 		case UPDATED:
-			// TODO
+			T entity = (T) dataEvent.getPayload();
+			Session session = mCriteria.getSession().open();
+			T updated = session.load(mGenericType, mPersistencePolicy.getPrimaryKey(entity));
+			session.close();
+			int index = mData.indexOf(entity);
+			mData.set(index, updated);
 			break;
 		}
 		notifyDataSetChanged();

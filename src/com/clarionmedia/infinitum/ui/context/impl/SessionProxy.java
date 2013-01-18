@@ -20,7 +20,8 @@ import java.lang.reflect.Method;
 
 import com.clarionmedia.infinitum.di.AbstractProxy;
 import com.clarionmedia.infinitum.di.DexMakerProxy;
-import com.clarionmedia.infinitum.event.InfinitumEvent;
+import com.clarionmedia.infinitum.event.EventPublisher;
+import com.clarionmedia.infinitum.event.annotation.InfinitumEvent;
 import com.clarionmedia.infinitum.orm.Session;
 import com.clarionmedia.infinitum.ui.context.InfinitumUiContext;
 import com.clarionmedia.infinitum.ui.context.impl.DataEvent.EventType;
@@ -42,10 +43,12 @@ import com.clarionmedia.infinitum.ui.context.impl.DataEvent.EventType;
 public class SessionProxy extends DexMakerProxy {
 
 	private InfinitumUiContext mContext;
+	private Session mSession;
 
 	public SessionProxy(InfinitumUiContext context, Session session) {
 		super(context.getAndroidContext(), session);
 		mContext = context;
+		mSession = session;
 	}
 
 	@Override
@@ -71,14 +74,14 @@ public class SessionProxy extends DexMakerProxy {
 		Object entity = args.length > 0 ? args[0] : null;
 		String eventName = method.getAnnotation(InfinitumEvent.class).value();
 		if (eventName.equals("entitySaved") && (Long) result != -1)
-			event = new DataEvent(EventType.CREATED, entity);
+			event = new DataEvent(mSession, EventType.CREATED, entity);
 		if (eventName.equals("entityUpdated") && (Boolean) result)
-			event = new DataEvent(EventType.UPDATED, entity);
+			event = new DataEvent(mSession, EventType.UPDATED, entity);
 		if (eventName.equals("entityDeleted") && (Boolean) result)
-			event = new DataEvent(EventType.DELETED, entity);
+			event = new DataEvent(mSession, EventType.DELETED, entity);
 		if (eventName.equals("entitySavedOrUpdated") && (Long) result != -1) {
 			EventType type = (Long) result == 0 ? EventType.UPDATED : EventType.CREATED;
-			event = new DataEvent(type, entity);
+			event = new DataEvent(mSession, type, entity);
 		}
 		return event;
 	}

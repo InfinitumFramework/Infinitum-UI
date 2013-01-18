@@ -16,14 +16,19 @@
 
 package com.clarionmedia.infinitum.ui.context.impl;
 
+import com.clarionmedia.infinitum.event.AbstractEvent;
+import com.clarionmedia.infinitum.event.EventPublisher;
+import com.clarionmedia.infinitum.event.impl.LifecycleEvent;
+import com.clarionmedia.infinitum.orm.Session;
+
 /**
  * <p>
- * Represents the notion of a "data event", which is the creation, modification,
- * or deletion of an entity. A {@code DataEvent} signals to the UI that it
- * potentially needs to be updated. For example, if an entity is deleted in
- * {@code Activity A} and then {@code Activity B}, which contains a list of
- * entities, is resumed, the deleted entity should be removed from the list in
- * {@code Activity B}.
+ * Concrete implementation of {@link AbstractEvent} representing the notion of a
+ * "data event", which is the creation, modification, or deletion of an entity.
+ * A {@code DataEvent} signals to the UI that it potentially needs to be
+ * updated. For example, if an entity is deleted in {@code Activity A} and then
+ * {@code Activity B}, which contains a list of entities, is resumed, the
+ * deleted entity should be removed from the list in {@code Activity B}.
  * </p>
  * <p>
  * {@code DataEvent}s are added to event queues that belong to each registered
@@ -36,8 +41,9 @@ package com.clarionmedia.infinitum.ui.context.impl;
  * @author Tyler Treat
  * @version 1.0 01/14/13
  * @since 1.0
+ * @see LifecycleEvent
  */
-public class DataEvent {
+public class DataEvent extends AbstractEvent {
 
 	/**
 	 * Indicates what kind of {@code DataEvent} occurred.
@@ -47,19 +53,20 @@ public class DataEvent {
 	};
 
 	private EventType mType;
-	private Object mEntity;
 
 	/**
 	 * Creates a new {@code DataEvent} instance.
 	 * 
+	 * @param session
+	 *            the {@link Session} that published the event
 	 * @param type
 	 *            the {@code EventType} of the {@code DataEvent}
 	 * @param entity
 	 *            the entity the {@code DataEvent} corresponds to
 	 */
-	public DataEvent(EventType type, Object entity) {
+	public DataEvent(Session session, EventType type, Object entity) {
+		super(type.name(), session, entity);
 		mType = type;
-		mEntity = entity;
 	}
 
 	/**
@@ -69,15 +76,6 @@ public class DataEvent {
 	 */
 	public EventType getType() {
 		return mType;
-	}
-
-	/**
-	 * Returns the entity for this {@code DataEvent}.
-	 * 
-	 * @return entity
-	 */
-	public Object getEntity() {
-		return mEntity;
 	}
 
 }
