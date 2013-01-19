@@ -1,20 +1,33 @@
-# built application files
+############
+# Binaries #
+############
+*.class
 *.apk
 *.ap_
-
-# files for the dex VM
 *.dex
 
-# Java class files
-*.class
-
-# generated files
+###############
+# Directories #
+###############
 bin/
+doc/
+obj/
+tmp/
 gen/
 
-# Local configuration file (sdk path, etc)
+###########
+# Project #
+###########
 local.properties
-
-# Eclipse project files
-.classpath
 .project
+.metadata
+*.tmp
+*.bak
+*.swp
+*~.nib
+.classpath
+.settings/
+.loadpath
+proguard.cfg
+lint.xml
+build.xml
