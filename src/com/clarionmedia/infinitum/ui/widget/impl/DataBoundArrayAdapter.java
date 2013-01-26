@@ -16,9 +16,9 @@
 
 package com.clarionmedia.infinitum.ui.widget.impl;
 
+import java.io.Serializable;
 import java.lang.reflect.ParameterizedType;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashMap;
 
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,7 +27,9 @@ import android.widget.TextView;
 
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.event.EventPublisher;
+import com.clarionmedia.infinitum.orm.context.InfinitumOrmContext;
 import com.clarionmedia.infinitum.orm.criteria.Criteria;
+import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
 import com.clarionmedia.infinitum.ui.context.InfinitumUiContext;
 import com.clarionmedia.infinitum.ui.context.impl.DataEvent;
 import com.clarionmedia.infinitum.ui.widget.DataBound;
@@ -47,7 +49,8 @@ public abstract class DataBoundArrayAdapter<T> extends ArrayAdapter<T> implement
 	private Criteria<T> mCriteria;
 	private EventPublisher mEventPublisher;
 	private Class<T> mGenericType;
-	private List<T> mData;
+	private PersistencePolicy mPersistencePolicy;
+	private LinkedHashMap<Serializable, T> mData;
 
 	/**
 	 * Creates a new {@code DataBoundArrayAdapter} instance.
@@ -72,7 +75,8 @@ public abstract class DataBoundArrayAdapter<T> extends ArrayAdapter<T> implement
 		context.getChildContext(InfinitumUiContext.class).registerDataBound(this);
 		ParameterizedType type = (ParameterizedType) getClass().getGenericSuperclass();
 		mGenericType = (Class<T>) type.getActualTypeArguments()[0];
-		mData = new ArrayList<T>();
+		mPersistencePolicy = context.getChildContext(InfinitumOrmContext.class).getPersistencePolicy();
+		mData = new LinkedHashMap<Serializable, T>();
 	}
 
 	@Override
@@ -80,14 +84,28 @@ public abstract class DataBoundArrayAdapter<T> extends ArrayAdapter<T> implement
 	
 	@Override
 	public void add(T entity) {
-		mData.add(entity);
+		Serializable pk = mPersistencePolicy.getPrimaryKey(entity);
+		mData.put(pk, entity);
 		super.add(entity);
 	}
 	
 	@Override
 	public void remove(T entity) {
-		mData.remove(entity);
+		Serializable pk = mPersistencePolicy.getPrimaryKey(entity);
+		mData.remove(pk);
 		super.remove(entity);
+	}
+	
+	public void update(T entity) {
+		Serializable pk = mPersistencePolicy.getPrimaryKey(entity);
+		for (int i = 0; i < getCount(); i++) {
+			T item = getItem(i);
+			if (pk.equals(mPersistencePolicy.getPrimaryKey(item))) {
+				mData.put(pk, entity);
+				super.remove(item);
+				super.insert(entity, i);
+			}
+		}
 	}
 
 	/**
@@ -128,7 +146,7 @@ public abstract class DataBoundArrayAdapter<T> extends ArrayAdapter<T> implement
 			remove((T) dataEvent.getPayload());
 			break;
 		case UPDATED:
-			// TODO
+			update((T) dataEvent.getPayload());
 			break;
 		}
 	}
