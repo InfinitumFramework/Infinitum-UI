@@ -17,6 +17,7 @@
 package com.clarionmedia.infinitum.ui.widget.impl;
 
 import java.lang.reflect.ParameterizedType;
+import java.util.ArrayList;
 import java.util.List;
 
 import android.view.View;
@@ -26,10 +27,7 @@ import android.widget.TextView;
 
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.event.EventPublisher;
-import com.clarionmedia.infinitum.orm.Session;
-import com.clarionmedia.infinitum.orm.context.InfinitumOrmContext;
 import com.clarionmedia.infinitum.orm.criteria.Criteria;
-import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
 import com.clarionmedia.infinitum.ui.context.InfinitumUiContext;
 import com.clarionmedia.infinitum.ui.context.impl.DataEvent;
 import com.clarionmedia.infinitum.ui.widget.DataBound;
@@ -50,7 +48,6 @@ public abstract class DataBoundArrayAdapter<T> extends ArrayAdapter<T> implement
 	private EventPublisher mEventPublisher;
 	private Class<T> mGenericType;
 	private List<T> mData;
-	private PersistencePolicy mPersistencePolicy;
 
 	/**
 	 * Creates a new {@code DataBoundArrayAdapter} instance.
@@ -72,14 +69,26 @@ public abstract class DataBoundArrayAdapter<T> extends ArrayAdapter<T> implement
 		super(context.getAndroidContext(), resource, textViewResourceId);
 		mCriteria = criteria;
 		mEventPublisher = eventPublisher;
-		mPersistencePolicy = context.getChildContext(InfinitumOrmContext.class).getPersistencePolicy();
 		context.getChildContext(InfinitumUiContext.class).registerDataBound(this);
 		ParameterizedType type = (ParameterizedType) getClass().getGenericSuperclass();
 		mGenericType = (Class<T>) type.getActualTypeArguments()[0];
+		mData = new ArrayList<T>();
 	}
 
 	@Override
 	public abstract View getView(int position, View convertView, ViewGroup parent);
+	
+	@Override
+	public void add(T entity) {
+		mData.add(entity);
+		super.add(entity);
+	}
+	
+	@Override
+	public void remove(T entity) {
+		mData.remove(entity);
+		super.remove(entity);
+	}
 
 	/**
 	 * Sets the {@link Criteria} query to use for binding data.
@@ -96,11 +105,9 @@ public abstract class DataBoundArrayAdapter<T> extends ArrayAdapter<T> implement
 		if (!mCriteria.getSession().isOpen())
 			mCriteria.getSession().open();
 		clear();
-		mData = mCriteria.list();
-		for (T item : mData)
+		for (T item : mCriteria.list())
 			add(item);
 		mCriteria.getSession().close();
-		notifyDataSetChanged();
 	}
 
 	@Override
@@ -115,21 +122,15 @@ public abstract class DataBoundArrayAdapter<T> extends ArrayAdapter<T> implement
 			return;
 		switch (dataEvent.getType()) {
 		case CREATED:
-			mData.add((T) dataEvent.getPayload());
+			add((T) dataEvent.getPayload());
 			break;
 		case DELETED:
-			mData.remove((T) dataEvent.getPayload());
+			remove((T) dataEvent.getPayload());
 			break;
 		case UPDATED:
-			T entity = (T) dataEvent.getPayload();
-			Session session = mCriteria.getSession().open();
-			T updated = session.load(mGenericType, mPersistencePolicy.getPrimaryKey(entity));
-			session.close();
-			int index = mData.indexOf(entity);
-			mData.set(index, updated);
+			// TODO
 			break;
 		}
-		notifyDataSetChanged();
 	}
 
 }
