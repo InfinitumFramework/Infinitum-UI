@@ -103,12 +103,16 @@ public abstract class DataBoundArrayAdapter<T> extends ArrayAdapter<T> implement
 
 	@Override
 	public void bind() {
-		if (!mCriteria.getSession().isOpen())
+		boolean close = false;
+		if (!mCriteria.getSession().isOpen()) {
 			mCriteria.getSession().open();
+			close = true;
+		}
 		clear();
 		for (T item : mCriteria.list())
 			add(item);
-		mCriteria.getSession().close();
+		if (close)
+		    mCriteria.getSession().close();
 	}
 
 	@Override
