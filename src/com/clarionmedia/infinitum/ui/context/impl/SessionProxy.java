@@ -57,7 +57,7 @@ public class SessionProxy extends DexMakerProxy {
 		if (method.isAnnotationPresent(InfinitumEvent.class)) {
 			DataEvent event = getDataEvent(method, args, result);
 			if (event != null)
-				mContext.enqueueDataEvent(event);
+				mContext.publishDataEvent(event);
 		}
 		if (Session.class.isAssignableFrom(result.getClass()))
 			return this.getProxy();

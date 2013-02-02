@@ -19,10 +19,8 @@ package com.clarionmedia.infinitum.ui.context.impl;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
 import java.util.Set;
 
 import android.content.Context;
@@ -37,7 +35,7 @@ import com.clarionmedia.infinitum.event.AbstractEvent;
 import com.clarionmedia.infinitum.event.EventPublisher;
 import com.clarionmedia.infinitum.event.EventSubscriber;
 import com.clarionmedia.infinitum.event.impl.LifecycleEvent;
-import com.clarionmedia.infinitum.internal.Pair;
+import com.clarionmedia.infinitum.event.impl.LifecycleEvent.LifecycleHook;
 import com.clarionmedia.infinitum.orm.Session;
 import com.clarionmedia.infinitum.ui.context.InfinitumUiContext;
 import com.clarionmedia.infinitum.ui.widget.DataBound;
@@ -56,7 +54,7 @@ public class XmlInfinitumUiContext implements InfinitumUiContext {
 
 	private XmlApplicationContext mParentContext;
 	private List<InfinitumContext> mChildContexts;
-	private Map<EventPublisher, Pair<Set<DataBound>, Queue<DataEvent>>> mDataEvents;
+	private Map<EventPublisher, Set<DataBound>> mDataBounds;
 
 	/**
 	 * Creates a new {@code XmlInfinitumUiContext} instance as a child of the
@@ -69,7 +67,7 @@ public class XmlInfinitumUiContext implements InfinitumUiContext {
 		mParentContext = parentContext;
 		mChildContexts = new ArrayList<InfinitumContext>();
 		parentContext.subscribeForEvents(this);
-		mDataEvents = new HashMap<EventPublisher, Pair<Set<DataBound>, Queue<DataEvent>>>();
+		mDataBounds = new HashMap<EventPublisher, Set<DataBound>>();
 	}
 
 	@Override
@@ -146,26 +144,9 @@ public class XmlInfinitumUiContext implements InfinitumUiContext {
 		if (!(event instanceof LifecycleEvent))
 			return;
 		LifecycleEvent lifecycleEvent = (LifecycleEvent) event;
-		EventPublisher eventPublisher = lifecycleEvent.getPublisher();
-		switch (lifecycleEvent.getLifecycleHook()) {
-		case ON_DESTROY:
-			mDataEvents.remove(eventPublisher);
-			break;
-		case ON_CREATE:
-		case ON_START:
-		case ON_RESUME:
-		case ON_CREATE_VIEW:
-			for (Pair<Set<DataBound>, Queue<DataEvent>> p : mDataEvents.values()) {
-				Queue<DataEvent> eventQueue = p.getSecond();
-				while (!eventQueue.isEmpty()) {
-					DataEvent dataEvent = eventQueue.remove();
-					for (DataBound dataBound : p.getFirst())
-						dataBound.updateForEvent(dataEvent);
-				}
-			}
-			break;
-		default:
-			break;
+		if (lifecycleEvent.getLifecycleHook() == LifecycleHook.ON_DESTROY) {
+			EventPublisher eventPublisher = lifecycleEvent.getPublisher();
+			mDataBounds.remove(eventPublisher);
 		}
 	}
 
@@ -180,28 +161,24 @@ public class XmlInfinitumUiContext implements InfinitumUiContext {
 	}
 
 	@Override
-	public void enqueueDataEvent(DataEvent dataEvent) {
-		for (EventPublisher eventPublisher : mDataEvents.keySet()) {
-			if (!mDataEvents.containsKey(eventPublisher)) {
-				Queue<DataEvent> queue = new LinkedList<DataEvent>();
-				queue.add(dataEvent);
-				Pair<Set<DataBound>, Queue<DataEvent>> p = new Pair<Set<DataBound>, Queue<DataEvent>>(new HashSet<DataBound>(), queue);
-				mDataEvents.put(eventPublisher, p);
+	public void publishDataEvent(DataEvent dataEvent) {
+		// TODO do this asynchronously?
+		for (Set<DataBound> dataBounds : mDataBounds.values()) {
+			for (DataBound dataBound : dataBounds) {
+				dataBound.updateForEvent(dataEvent);
 			}
-			mDataEvents.get(eventPublisher).getSecond().add(dataEvent);
 		}
 	}
 
 	@Override
 	public void registerDataBound(DataBound dataBound) {
 		EventPublisher eventPublisher = dataBound.getEventPublisher();
-		if (!mDataEvents.containsKey(eventPublisher)) {
+		if (!mDataBounds.containsKey(eventPublisher)) {
 			Set<DataBound> dataBounds = new HashSet<DataBound>();
 			dataBounds.add(dataBound);
-			Pair<Set<DataBound>, Queue<DataEvent>> p = new Pair<Set<DataBound>, Queue<DataEvent>>(dataBounds, new LinkedList<DataEvent>());
-			mDataEvents.put(eventPublisher, p);
+			mDataBounds.put(eventPublisher, dataBounds);
 		} else {
-			mDataEvents.get(eventPublisher).getFirst().add(dataBound);
+			mDataBounds.get(eventPublisher).add(dataBound);
 		}
 	}
 

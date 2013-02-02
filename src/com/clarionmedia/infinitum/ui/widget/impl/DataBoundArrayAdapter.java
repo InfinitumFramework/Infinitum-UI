@@ -18,7 +18,6 @@ package com.clarionmedia.infinitum.ui.widget.impl;
 
 import java.io.Serializable;
 import java.lang.reflect.ParameterizedType;
-import java.util.LinkedHashMap;
 
 import android.view.View;
 import android.view.ViewGroup;
@@ -50,7 +49,6 @@ public abstract class DataBoundArrayAdapter<T> extends ArrayAdapter<T> implement
 	private EventPublisher mEventPublisher;
 	private Class<T> mGenericType;
 	private PersistencePolicy mPersistencePolicy;
-	private LinkedHashMap<Serializable, T> mData;
 
 	/**
 	 * Creates a new {@code DataBoundArrayAdapter} instance.
@@ -76,34 +74,19 @@ public abstract class DataBoundArrayAdapter<T> extends ArrayAdapter<T> implement
 		ParameterizedType type = (ParameterizedType) getClass().getGenericSuperclass();
 		mGenericType = (Class<T>) type.getActualTypeArguments()[0];
 		mPersistencePolicy = context.getChildContext(InfinitumOrmContext.class).getPersistencePolicy();
-		mData = new LinkedHashMap<Serializable, T>();
 	}
 
 	@Override
 	public abstract View getView(int position, View convertView, ViewGroup parent);
-	
-	@Override
-	public void add(T entity) {
-		Serializable pk = mPersistencePolicy.getPrimaryKey(entity);
-		mData.put(pk, entity);
-		super.add(entity);
-	}
-	
-	@Override
-	public void remove(T entity) {
-		Serializable pk = mPersistencePolicy.getPrimaryKey(entity);
-		mData.remove(pk);
-		super.remove(entity);
-	}
 	
 	public void update(T entity) {
 		Serializable pk = mPersistencePolicy.getPrimaryKey(entity);
 		for (int i = 0; i < getCount(); i++) {
 			T item = getItem(i);
 			if (pk.equals(mPersistencePolicy.getPrimaryKey(item))) {
-				mData.put(pk, entity);
 				super.remove(item);
 				super.insert(entity, i);
+				break;
 			}
 		}
 	}

@@ -45,13 +45,13 @@ public interface InfinitumUiContext extends InfinitumContext, BeanProvider, Even
 	Session getProxiedSession(Session session);
 
 	/**
-	 * Adds the given {@link DataEvent} to the {@link EventPublisher} event
-	 * queues.
+	 * Publishes the given {@link DataEvent} to the registered {@link DataBound}
+	 * instances.
 	 * 
 	 * @param dataEvent
 	 *            the {@code DataEvent} to add to the queues
 	 */
-	void enqueueDataEvent(DataEvent dataEvent);
+	void publishDataEvent(DataEvent dataEvent);
 
 	/**
 	 * Registers the given {@link DataBound} with the UI context for receiving
