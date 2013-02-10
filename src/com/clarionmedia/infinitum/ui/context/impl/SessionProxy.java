@@ -45,6 +45,14 @@ public class SessionProxy extends DexMakerProxy {
 	private InfinitumUiContext mContext;
 	private Session mSession;
 
+	/**
+	 * Creates a new {@code SessionProxy} instance.
+	 * 
+	 * @param context
+	 *            the {@link InfinitumUiContext}
+	 * @param session
+	 *            the {@link Session} to proxy
+	 */
 	public SessionProxy(InfinitumUiContext context, Session session) {
 		super(context.getAndroidContext(), session);
 		mContext = context;
