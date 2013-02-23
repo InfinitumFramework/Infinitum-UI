@@ -14,12 +14,12 @@ doc/
 obj/
 tmp/
 gen/
+target/
 
 ###########
 # Project #
 ###########
 local.properties
-.project
 .metadata
 *.tmp
 *.bak
