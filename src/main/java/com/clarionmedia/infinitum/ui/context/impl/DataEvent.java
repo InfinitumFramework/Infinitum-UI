@@ -21,61 +21,54 @@ import com.clarionmedia.infinitum.event.EventPublisher;
 import com.clarionmedia.infinitum.event.impl.LifecycleEvent;
 import com.clarionmedia.infinitum.orm.Session;
 
+import java.util.Map;
+
 /**
- * <p>
- * Concrete implementation of {@link AbstractEvent} representing the notion of a
- * "data event", which is the creation, modification, or deletion of an entity.
- * A {@code DataEvent} signals to the UI that it potentially needs to be
- * updated. For example, if an entity is deleted in {@code Activity A} and then
- * {@code Activity B}, which contains a list of entities, is resumed, the
- * deleted entity should be removed from the list in {@code Activity B}.
- * </p>
- * <p>
- * {@code DataEvent}s are added to event queues that belong to each registered
- * {@link EventPublisher}. When an {@code Activity} or {@code Fragment}
- * lifecycle event is published, such as {@code onCreate}, {@code onStart}, or
- * {@code onResume}, the {@code DataEvent}s in the queue will be consumed,
- * possibly resulting in a UI update.
- * </p>
- * 
+ * <p> Concrete implementation of {@link AbstractEvent} representing the notion of a "data event", which is the
+ * creation, modification, or deletion of an entity. A {@code DataEvent} signals to the UI that it potentially needs to
+ * be updated. For example, if an entity is deleted in {@code Activity A} and then {@code Activity B}, which contains a
+ * list of entities, is resumed, the deleted entity should be removed from the list in {@code Activity B}. </p> <p>
+ * {@code DataEvent}s are added to event queues that belong to each registered {@link EventPublisher}. When an {@code
+ * Activity} or {@code Fragment} lifecycle event is published, such as {@code onCreate}, {@code onStart}, or {@code
+ * onResume}, the {@code DataEvent}s in the queue will be consumed, possibly resulting in a UI update. </p>
+ *
  * @author Tyler Treat
  * @version 1.0 01/14/13
- * @since 1.0
  * @see LifecycleEvent
+ * @since 1.0
  */
 public class DataEvent extends AbstractEvent {
 
-	/**
-	 * Indicates what kind of {@code DataEvent} occurred.
-	 */
-	public static enum EventType {
-		CREATED, DELETED, UPDATED
-	};
+    /**
+     * Indicates what kind of {@code DataEvent} occurred.
+     */
+    public static enum EventType {
+        CREATED, DELETED, UPDATED
+    }
 
-	private EventType mType;
+    ;
 
-	/**
-	 * Creates a new {@code DataEvent} instance.
-	 * 
-	 * @param session
-	 *            the {@link Session} that published the event
-	 * @param type
-	 *            the {@code EventType} of the {@code DataEvent}
-	 * @param entity
-	 *            the entity the {@code DataEvent} corresponds to
-	 */
-	public DataEvent(Session session, EventType type, Object entity) {
-		super(type.name(), session, entity);
-		mType = type;
-	}
+    private EventType mType;
 
-	/**
-	 * Returns the {@code EventType} for this {@code DataEvent}.
-	 * 
-	 * @return {@code DataEvent}
-	 */
-	public EventType getType() {
-		return mType;
-	}
+    /**
+     * Creates a new {@code DataEvent} instance.
+     *
+     * @param session the {@link Session} that published the event
+     * @param type    the {@code EventType} of the {@code DataEvent}
+     * @param payload the payload containing the entities the {@code DataEvent} corresponds to
+     */
+    public DataEvent(Session session, EventType type, Map<String, Object> payload) {
+        super(type.name(), session, payload);
+        mType = type;
+    }
+
+    /**
+     * Returns the {@code EventType} for this {@code DataEvent}.
+     *
+     * @return {@code DataEvent}
+     */
+    public EventType getType() {
+        return mType;
+    }
 
 }

@@ -16,15 +16,17 @@
 
 package com.clarionmedia.infinitum.ui.context.impl;
 
-import java.lang.reflect.Method;
-
 import com.clarionmedia.infinitum.di.AbstractProxy;
 import com.clarionmedia.infinitum.di.DexMakerProxy;
 import com.clarionmedia.infinitum.event.EventPublisher;
-import com.clarionmedia.infinitum.event.annotation.InfinitumEvent;
+import com.clarionmedia.infinitum.event.annotation.Event;
 import com.clarionmedia.infinitum.orm.Session;
 import com.clarionmedia.infinitum.ui.context.InfinitumUiContext;
 import com.clarionmedia.infinitum.ui.context.impl.DataEvent.EventType;
+
+import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * <p>
@@ -62,7 +64,7 @@ public class SessionProxy extends DexMakerProxy {
 	@Override
 	public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 		Object result = method.invoke(mTarget, args);
-		if (method.isAnnotationPresent(InfinitumEvent.class)) {
+		if (method.isAnnotationPresent(Event.class)) {
 			DataEvent event = getDataEvent(method, args, result);
 			if (event != null)
 				mContext.publishDataEvent(event);
@@ -80,16 +82,18 @@ public class SessionProxy extends DexMakerProxy {
 	private DataEvent getDataEvent(Method method, Object[] args, Object result) {
 		DataEvent event = null;
 		Object entity = args.length > 0 ? args[0] : null;
-		String eventName = method.getAnnotation(InfinitumEvent.class).value();
+        Map<String, Object> payload = new HashMap<String, Object>();
+        payload.put("entity", entity);
+		String eventName = method.getAnnotation(Event.class).value();
 		if (eventName.equals("entitySaved") && (Long) result != -1)
-			event = new DataEvent(mSession, EventType.CREATED, entity);
+			event = new DataEvent(mSession, EventType.CREATED, payload);
 		if (eventName.equals("entityUpdated") && (Boolean) result)
-			event = new DataEvent(mSession, EventType.UPDATED, entity);
+			event = new DataEvent(mSession, EventType.UPDATED, payload);
 		if (eventName.equals("entityDeleted") && (Boolean) result)
-			event = new DataEvent(mSession, EventType.DELETED, entity);
+			event = new DataEvent(mSession, EventType.DELETED, payload);
 		if (eventName.equals("entitySavedOrUpdated") && (Long) result != -1) {
 			EventType type = (Long) result == 0 ? EventType.UPDATED : EventType.CREATED;
-			event = new DataEvent(mSession, type, entity);
+			event = new DataEvent(mSession, type, payload);
 		}
 		return event;
 	}

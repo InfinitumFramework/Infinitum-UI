@@ -16,14 +16,10 @@
 
 package com.clarionmedia.infinitum.ui.widget.impl;
 
-import java.io.Serializable;
-import java.lang.reflect.ParameterizedType;
-
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
-
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.event.EventPublisher;
 import com.clarionmedia.infinitum.orm.context.InfinitumOrmContext;
@@ -32,6 +28,9 @@ import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
 import com.clarionmedia.infinitum.ui.context.InfinitumUiContext;
 import com.clarionmedia.infinitum.ui.context.impl.DataEvent;
 import com.clarionmedia.infinitum.ui.widget.DataBound;
+
+import java.io.Serializable;
+import java.lang.reflect.ParameterizedType;
 
 /**
  * <p>
@@ -123,17 +122,17 @@ public abstract class DataBoundArrayAdapter<T> extends ArrayAdapter<T> implement
 	@SuppressWarnings("unchecked")
 	@Override
 	public void updateForEvent(DataEvent dataEvent) {
-		if (!mGenericType.isInstance(dataEvent.getPayload()))
+		if (!mGenericType.isInstance(dataEvent.getPayloadValue("entity")))
 			return;
 		switch (dataEvent.getType()) {
 		case CREATED:
-			add((T) dataEvent.getPayload());
+			add((T) dataEvent.getPayloadValue("entity"));
 			break;
 		case DELETED:
-			remove((T) dataEvent.getPayload());
+			remove((T) dataEvent.getPayloadValue("entity"));
 			break;
 		case UPDATED:
-			update((T) dataEvent.getPayload());
+			update((T) dataEvent.getPayloadValue("entity"));
 			break;
 		}
 	}
