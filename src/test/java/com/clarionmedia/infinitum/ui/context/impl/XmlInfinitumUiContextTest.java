@@ -33,9 +33,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
@@ -204,11 +202,9 @@ public class XmlInfinitumUiContextTest {
     @Test
     public void testpublishDataEvent() {
         // Setup
-        Map<EventPublisher, Set<DataBound>> dataBoundsMap = new HashMap<EventPublisher, Set<DataBound>>();
         Set<DataBound> dataBounds = new HashSet<DataBound>();
         dataBounds.add(mockDataBound);
-        dataBoundsMap.put(mockEventPublisher, dataBounds);
-        uiContext.setDataBounds(dataBoundsMap);
+        uiContext.setDataBounds(dataBounds);
         when(mockContext.isComponentScanEnabled()).thenReturn(true);
 
         // Run
@@ -220,15 +216,11 @@ public class XmlInfinitumUiContextTest {
 
     @Test
     public void testRegisterDataBound() {
-        // Setup
-        when(mockDataBound.getEventPublisher()).thenReturn(mockEventPublisher);
-
         // Run
         uiContext.registerDataBound(mockDataBound);
 
         // Verify
-        Map<EventPublisher, Set<DataBound>> dataBounds = uiContext.getDataBounds();
-        Set<DataBound> actual = dataBounds.get(mockEventPublisher);
+        Set<DataBound> actual = uiContext.getDataBounds();
         assertTrue("Expected value should be registered", actual.contains(mockDataBound));
     }
 

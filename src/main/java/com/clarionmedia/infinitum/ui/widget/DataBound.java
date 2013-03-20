@@ -16,7 +16,6 @@
 
 package com.clarionmedia.infinitum.ui.widget;
 
-import com.clarionmedia.infinitum.event.EventPublisher;
 import com.clarionmedia.infinitum.ui.context.impl.DataEvent;
 
 /**
@@ -45,13 +44,5 @@ public interface DataBound {
 	 *            the {@code DataEvent} to respond to
 	 */
 	void updateForEvent(DataEvent dataEvent);
-
-	/**
-	 * Returns the {@link EventPublisher} associated with this {@code DataBound}
-	 * .
-	 * 
-	 * @return {@code EventPublisher}
-	 */
-	EventPublisher getEventPublisher();
 
 }

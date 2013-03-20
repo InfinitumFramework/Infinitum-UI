@@ -35,10 +35,8 @@ import com.clarionmedia.infinitum.ui.widget.DataBound;
 import java.util.*;
 
 /**
- * <p>
- * Implementation of {@link InfinitumUiContext} which is initialized through XML
- * as a child of an {@link XmlApplicationContext} instance.
- * </p>
+ * <p> Implementation of {@link InfinitumUiContext} which is initialized through XML as a child of an {@link
+ * XmlApplicationContext} instance. </p>
  *
  * @author Tyler Treat
  * @version 1.0 01/13/13
@@ -48,11 +46,10 @@ public class XmlInfinitumUiContext implements InfinitumUiContext {
 
     private XmlApplicationContext mParentContext;
     private List<InfinitumContext> mChildContexts;
-    private Map<EventPublisher, Set<DataBound>> mDataBounds;
+    private Set<DataBound> mDataBounds;
 
     /**
-     * Creates a new {@code XmlInfinitumUiContext} instance as a child of the
-     * given {@link XmlApplicationContext}.
+     * Creates a new {@code XmlInfinitumUiContext} instance as a child of the given {@link XmlApplicationContext}.
      *
      * @param parentContext the parent of this context
      */
@@ -60,7 +57,7 @@ public class XmlInfinitumUiContext implements InfinitumUiContext {
         mParentContext = parentContext;
         mChildContexts = new ArrayList<InfinitumContext>();
         parentContext.subscribeForEvents(this);
-        mDataBounds = new HashMap<EventPublisher, Set<DataBound>>();
+        mDataBounds = new HashSet<DataBound>();
     }
 
     @Override
@@ -155,41 +152,31 @@ public class XmlInfinitumUiContext implements InfinitumUiContext {
 
     @Override
     public void publishDataEvent(DataEvent dataEvent) {
-        // TODO do this asynchronously?
-        for (Set<DataBound> dataBounds : mDataBounds.values()) {
-            for (DataBound dataBound : dataBounds) {
-                dataBound.updateForEvent(dataEvent);
-            }
+        for (DataBound dataBound : mDataBounds) {
+            dataBound.updateForEvent(dataEvent);
         }
     }
 
     @Override
     public void registerDataBound(DataBound dataBound) {
-        EventPublisher eventPublisher = dataBound.getEventPublisher();
-        if (!mDataBounds.containsKey(eventPublisher)) {
-            Set<DataBound> dataBounds = new HashSet<DataBound>();
-            dataBounds.add(dataBound);
-            mDataBounds.put(eventPublisher, dataBounds);
-        } else {
-            mDataBounds.get(eventPublisher).add(dataBound);
-        }
+        mDataBounds.add(dataBound);
     }
 
     /**
-     * Sets the {@link DataBound} {@code Map} for this {@code XmlInfinitumUiContext}.
+     * Sets the {@link DataBound} set for this {@code XmlInfinitumUiContext}.
      *
-     * @param dataBounds the {@code Map} to set
+     * @param dataBounds the {@code Set} to set
      */
-    public void setDataBounds(Map<EventPublisher, Set<DataBound>> dataBounds) {
+    public void setDataBounds(Set<DataBound> dataBounds) {
         mDataBounds = dataBounds;
     }
 
     /**
-     * Returns the {@link DataBound} {@code Map} for this {@code XmlInfinitumUiContext}.
+     * Returns the {@link DataBound} {@code Set} for this {@code XmlInfinitumUiContext}.
      *
-     * @return {@code DataBound} {@code Map}
+     * @return {@code DataBound} {@code Set}
      */
-    public Map<EventPublisher, Set<DataBound>> getDataBounds() {
+    public Set<DataBound> getDataBounds() {
         return mDataBounds;
     }
 

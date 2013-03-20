@@ -21,7 +21,7 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 import com.clarionmedia.infinitum.context.InfinitumContext;
-import com.clarionmedia.infinitum.event.EventPublisher;
+import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.orm.context.InfinitumOrmContext;
 import com.clarionmedia.infinitum.orm.criteria.Criteria;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
@@ -45,7 +45,6 @@ import java.lang.reflect.ParameterizedType;
 public abstract class DataBoundArrayAdapter<T> extends ArrayAdapter<T> implements DataBound {
 
 	private Criteria<T> mCriteria;
-	private EventPublisher mEventPublisher;
 	private Class<T> mGenericType;
 	private PersistencePolicy mPersistencePolicy;
 
@@ -54,8 +53,6 @@ public abstract class DataBoundArrayAdapter<T> extends ArrayAdapter<T> implement
 	 * 
 	 * @param context
 	 *            the {@link InfinitumContext}
-	 * @param eventPublisher
-	 *            the {@link EventPublisher} this adapter belongs to
 	 * @param resource
 	 *            the {@link View} layout ID
 	 * @param textViewResourceId
@@ -64,15 +61,17 @@ public abstract class DataBoundArrayAdapter<T> extends ArrayAdapter<T> implement
 	 *            the {@link Criteria} query to use for retrieving data
 	 */
 	@SuppressWarnings("unchecked")
-	public DataBoundArrayAdapter(InfinitumContext context, EventPublisher eventPublisher, int resource, int textViewResourceId,
+	public DataBoundArrayAdapter(InfinitumContext context, int resource, int textViewResourceId,
 			Criteria<T> criteria) {
 		super(context.getAndroidContext(), resource, textViewResourceId);
 		mCriteria = criteria;
-		mEventPublisher = eventPublisher;
-		context.getChildContext(InfinitumUiContext.class).registerDataBound(this);
 		ParameterizedType type = (ParameterizedType) getClass().getGenericSuperclass();
-		mGenericType = (Class<T>) type.getActualTypeArguments()[0];
 		mPersistencePolicy = context.getChildContext(InfinitumOrmContext.class).getPersistencePolicy();
+		mGenericType = (Class<T>) type.getActualTypeArguments()[0];
+        if (!mPersistencePolicy.isPersistent(mGenericType)) {
+            throw new InfinitumRuntimeException("Generic must be a domain type");
+        }
+		context.getChildContext(InfinitumUiContext.class).registerDataBound(this);
 	}
 
 	@Override
@@ -112,11 +111,6 @@ public abstract class DataBoundArrayAdapter<T> extends ArrayAdapter<T> implement
 			add(item);
 		if (close)
 		    mCriteria.getSession().close();
-	}
-
-	@Override
-	public EventPublisher getEventPublisher() {
-		return mEventPublisher;
 	}
 
 	@SuppressWarnings("unchecked")

@@ -18,7 +18,6 @@ package com.clarionmedia.infinitum.ui.context.impl;
 
 import com.clarionmedia.infinitum.di.AbstractProxy;
 import com.clarionmedia.infinitum.di.DexMakerProxy;
-import com.clarionmedia.infinitum.event.EventPublisher;
 import com.clarionmedia.infinitum.event.annotation.Event;
 import com.clarionmedia.infinitum.orm.Session;
 import com.clarionmedia.infinitum.ui.context.InfinitumUiContext;
@@ -33,11 +32,10 @@ import java.util.Map;
  * Proxy for a {@link Session} which intercepts {@code Session} method
  * invocations. Successful "data-modifying" method invocations, such as
  * {@link Session#save(Object)}, {@link Session#update(Object)}, and
- * {@link Session#delete(Object)}, will add a {@link DataEvent} to the
- * {@link EventPublisher} queues, allowing them to react accordingly on
- * qualifying lifecycle events.
+ * {@link Session#delete(Object)}, will publish a {@link DataEvent}
+ * to registered {@link com.clarionmedia.infinitum.ui.widget.DataBound} instances.
  * </p>
- * 
+ *
  * @author Tyler Treat
  * @version 1.0 01/13/13
  * @since 1.0
@@ -49,7 +47,7 @@ public class SessionProxy extends DexMakerProxy {
 
 	/**
 	 * Creates a new {@code SessionProxy} instance.
-	 * 
+	 *
 	 * @param context
 	 *            the {@link InfinitumUiContext}
 	 * @param session
