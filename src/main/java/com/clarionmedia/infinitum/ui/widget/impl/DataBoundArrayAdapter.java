@@ -19,11 +19,9 @@ package com.clarionmedia.infinitum.ui.widget.impl;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.TextView;
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.orm.context.InfinitumOrmContext;
-import com.clarionmedia.infinitum.orm.criteria.Criteria;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
 import com.clarionmedia.infinitum.ui.context.InfinitumUiContext;
 import com.clarionmedia.infinitum.ui.context.impl.DataEvent;
@@ -31,104 +29,75 @@ import com.clarionmedia.infinitum.ui.widget.DataBound;
 
 import java.io.Serializable;
 import java.lang.reflect.ParameterizedType;
+import java.util.List;
 
 /**
- * <p>
- * Implementation of {@link ArrayAdapter} where the data is loaded using the
- * provided {@link Criteria} query.
- * </p>
- * 
+ * <p> Implementation of {@link ArrayAdapter} which is updated when the model of the generic type is modified. </p>
+ *
  * @author Tyler Treat
- * @version 1.0 01/13/13
- * @since 1.0
+ * @version 1.0.3b 03/20/13
+ * @since 1.0.3b
  */
 public abstract class DataBoundArrayAdapter<T> extends ArrayAdapter<T> implements DataBound {
 
-	private Criteria<T> mCriteria;
-	private Class<T> mGenericType;
-	private PersistencePolicy mPersistencePolicy;
+    private Class<T> mGenericType;
+    private PersistencePolicy mPersistencePolicy;
 
-	/**
-	 * Creates a new {@code DataBoundArrayAdapter} instance.
-	 * 
-	 * @param context
-	 *            the {@link InfinitumContext}
-	 * @param resource
-	 *            the {@link View} layout ID
-	 * @param textViewResourceId
-	 *            the {@link TextView} ID
-	 * @param criteria
-	 *            the {@link Criteria} query to use for retrieving data
-	 */
-	@SuppressWarnings("unchecked")
-	public DataBoundArrayAdapter(InfinitumContext context, int resource, int textViewResourceId,
-			Criteria<T> criteria) {
-		super(context.getAndroidContext(), resource, textViewResourceId);
-		mCriteria = criteria;
-		ParameterizedType type = (ParameterizedType) getClass().getGenericSuperclass();
-		mPersistencePolicy = context.getChildContext(InfinitumOrmContext.class).getPersistencePolicy();
-		mGenericType = (Class<T>) type.getActualTypeArguments()[0];
+    /**
+     * Creates a new {@code DataBoundArrayAdapter} instance.
+     *
+     * @param context            the {@link InfinitumContext}
+     * @param resource           the {@link View} layout ID
+     * @param entities           the adapter data
+     */
+    @SuppressWarnings("unchecked")
+    public DataBoundArrayAdapter(InfinitumContext context, int resource,
+                                 List<T> entities) {
+        super(context.getAndroidContext(), resource, entities);
+        ParameterizedType type = (ParameterizedType) getClass().getGenericSuperclass();
+        mPersistencePolicy = context.getChildContext(InfinitumOrmContext.class).getPersistencePolicy();
+        mGenericType = (Class<T>) type.getActualTypeArguments()[0];
         if (!mPersistencePolicy.isPersistent(mGenericType)) {
             throw new InfinitumRuntimeException("Generic must be a domain type");
         }
-		context.getChildContext(InfinitumUiContext.class).registerDataBound(this);
-	}
+        context.getChildContext(InfinitumUiContext.class).registerDataBound(this);
+    }
 
-	@Override
-	public abstract View getView(int position, View convertView, ViewGroup parent);
-	
-	public void update(T entity) {
-		Serializable pk = mPersistencePolicy.getPrimaryKey(entity);
-		for (int i = 0; i < getCount(); i++) {
-			T item = getItem(i);
-			if (pk.equals(mPersistencePolicy.getPrimaryKey(item))) {
-				super.remove(item);
-				super.insert(entity, i);
-				break;
-			}
-		}
-	}
+    @Override
+    public abstract View getView(int position, View convertView, ViewGroup parent);
 
-	/**
-	 * Sets the {@link Criteria} query to use for binding data.
-	 * 
-	 * @param criteria
-	 *            the {@code Criteria} query
-	 */
-	public void setCriteria(Criteria<T> criteria) {
-		mCriteria = criteria;
-	}
+    public void update(T entity) {
+        Serializable pk = mPersistencePolicy.getPrimaryKey(entity);
+        for (int i = 0; i < getCount(); i++) {
+            T item = getItem(i);
+            if (pk.equals(mPersistencePolicy.getPrimaryKey(item))) {
+                super.remove(item);
+                super.insert(entity, i);
+                break;
+            }
+        }
+    }
 
-	@Override
-	public void bind() {
-		boolean close = false;
-		if (!mCriteria.getSession().isOpen()) {
-			mCriteria.getSession().open();
-			close = true;
-		}
-		clear();
-		for (T item : mCriteria.list())
-			add(item);
-		if (close)
-		    mCriteria.getSession().close();
-	}
+    @Override
+    public void bind() {
+    }
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public void updateForEvent(DataEvent dataEvent) {
-		if (!mGenericType.isInstance(dataEvent.getPayloadValue("entity")))
-			return;
-		switch (dataEvent.getType()) {
-		case CREATED:
-			add((T) dataEvent.getPayloadValue("entity"));
-			break;
-		case DELETED:
-			remove((T) dataEvent.getPayloadValue("entity"));
-			break;
-		case UPDATED:
-			update((T) dataEvent.getPayloadValue("entity"));
-			break;
-		}
-	}
+    @SuppressWarnings("unchecked")
+    @Override
+    public void updateForEvent(DataEvent dataEvent) {
+        if (!mGenericType.isInstance(dataEvent.getPayloadValue("entity")))
+            return;
+        switch (dataEvent.getType()) {
+            case CREATED:
+                add((T) dataEvent.getPayloadValue("entity"));
+                break;
+            case DELETED:
+                remove((T) dataEvent.getPayloadValue("entity"));
+                break;
+            case UPDATED:
+                update((T) dataEvent.getPayloadValue("entity"));
+                break;
+        }
+    }
 
 }

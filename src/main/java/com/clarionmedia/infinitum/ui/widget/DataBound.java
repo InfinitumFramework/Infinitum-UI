@@ -30,7 +30,7 @@ import com.clarionmedia.infinitum.ui.context.impl.DataEvent;
 public interface DataBound {
 
 	/**
-	 * Binds the data source data to the widget. This will result in some sort
+	 * Binds the data source data to the widget. This may result in some sort
 	 * of datastore query.
 	 */
 	void bind();
