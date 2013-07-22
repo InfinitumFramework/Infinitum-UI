@@ -4,7 +4,7 @@
 	<artifactId>infinitum-ui</artifactId>
 	<packaging>jar</packaging>
 	<name>Infinitum UI</name>
-	<version>1.0.4b</version>
+	<version>1.0.5b-SNAPSHOT</version>
 	<description>Infinitum UI framework module</description>
 	<url>http://infinitumframework.com</url>
 
